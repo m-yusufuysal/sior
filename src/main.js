@@ -410,12 +410,13 @@ try {
           <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
             <div>
               <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #202223;">ADMIN USERNAME</label>
-              <input type="text" value="admin" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; box-sizing: border-box;" required>
+              <input type="text" id="admin-username-input" placeholder="Username" value="fatihefe" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; box-sizing: border-box;" required>
             </div>
             <div>
               <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #202223;">PASSWORD</label>
-              <input type="password" value="admin123" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; box-sizing: border-box;" required>
+              <input type="password" id="admin-password-input" placeholder="Password" value="fatihefe" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; box-sizing: border-box;" required>
             </div>
+            <div id="admin-login-error" style="color: #d82c0d; font-size: 13px; display: none;">Invalid username or password.</div>
             <button type="submit" class="btn-shopify" style="width: 100%; justify-content: center; padding: 14px; font-size: 14px; margin-top: 10px;">Log In to Admin</button>
             <button type="button" id="quick-demo-btn" class="btn-shopify-secondary" style="width: 100%; justify-content: center; padding: 12px; font-size: 13px;">⚡ One-Click Demo Access</button>
           </form>
@@ -425,8 +426,15 @@ try {
 
       document.getElementById('admin-login-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        sessionStorage.setItem('sior_admin_logged_in', 'true');
-        renderAdminPortal();
+        const userInput = document.getElementById('admin-username-input').value.trim();
+        const passInput = document.getElementById('admin-password-input').value.trim();
+
+        if (userInput === 'fatihefe' && passInput === 'fatihefe') {
+          sessionStorage.setItem('sior_admin_logged_in', 'true');
+          renderAdminPortal();
+        } else {
+          document.getElementById('admin-login-error').style.display = 'block';
+        }
       });
 
       document.getElementById('quick-demo-btn').addEventListener('click', () => {
