@@ -109,6 +109,7 @@ try {
           <li><a href="#" data-view="shipping" class="view-link">Shipping Info</a></li>
           <li><a href="#" data-view="terms" class="view-link">Terms of Use</a></li>
           <li><a href="#" data-view="privacy" class="view-link">Privacy Policy</a></li>
+          <li><a href="#" data-view="admin" class="view-link" style="color: rgba(197, 160, 89, 0.8);">Admin Portal</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -787,7 +788,9 @@ try {
 
     if (path.endsWith('/admin') || path.endsWith('/admin/') || hash === '#admin' || hash === '#/admin' || search.includes('admin')) {
       navigateToView('admin');
+      return true;
     }
+    return false;
   }
 
   function navigateToView(viewId) {
@@ -796,11 +799,7 @@ try {
 
     if (viewId === 'admin') {
       if (window.location.hash !== '#admin') {
-        history.replaceState(null, '', '#admin');
-      }
-    } else {
-      if (window.location.hash === '#admin') {
-        history.replaceState(null, '', window.location.pathname);
+        try { history.pushState(null, '', '#admin'); } catch (e) {}
       }
     }
 
@@ -1056,11 +1055,17 @@ try {
     }
   }
 
-  // Initial Render & URL Route Check
-  navigateToView('home');
-  window.addEventListener('hashchange', checkURLRoute);
+  // Initial Render & URL Route Check (Run checkURLRoute first)
+  if (!checkURLRoute()) {
+    navigateToView('home');
+  }
+
+  window.addEventListener('hashchange', () => {
+    if (!checkURLRoute() && (window.location.hash === '' || window.location.hash === '#')) {
+      navigateToView('home');
+    }
+  });
   window.addEventListener('popstate', checkURLRoute);
-  checkURLRoute();
 
   // Interactivity logic - Event Delegation for view navigation
   document.addEventListener('click', (e) => {
