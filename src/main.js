@@ -99,16 +99,16 @@ try {
       <div class="footer-col">
         <h4>ABOUT</h4>
         <ul>
-          <li><a href="#" id="contact-link-footer">Contact Us</a></li>
-          <li><a href="#">FAQ</a></li>
+          <li><a href="#" id="contact-link-footer" data-view="contact">Contact Us</a></li>
+          <li><a href="#" data-view="faq" class="view-link">FAQ</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>INFORMATION</h4>
         <ul>
-          <li><a href="#">Shipping Info</a></li>
-          <li><a href="#">Terms of Use</a></li>
-          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#" data-view="shipping" class="view-link">Shipping Info</a></li>
+          <li><a href="#" data-view="terms" class="view-link">Terms of Use</a></li>
+          <li><a href="#" data-view="privacy" class="view-link">Privacy Policy</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -361,6 +361,72 @@ try {
         e.preventDefault();
         alert('Thank you. We will be in touch shortly.');
       });
+    } else if (viewId === 'faq') {
+      mainContent.innerHTML = `
+      <section class="info-page">
+        <div class="category-header">
+          <h1>Frequently Asked Questions</h1>
+          <div class="category-divider"></div>
+        </div>
+        <div class="info-content">
+          <h3>Are Sior stones real diamonds or moissanites?</h3>
+          <p>Sior specializes in premium lab-grown moissanite and ethical lab diamonds engineered to match and exceed natural diamond brilliance.</p>
+          
+          <h3>What warranty do you provide?</h3>
+          <p>Every Sior piece comes with a Lifetime Stone Warranty and a GIA/IGI Authenticity Card guaranteeing color, clarity, and precision cut.</p>
+          
+          <h3>How long does international shipping take?</h3>
+          <p>We provide Free Express Insured Shipping worldwide via DHL/FedEx. Delivery typically takes 3–5 business days.</p>
+          
+          <h3>What is your return policy?</h3>
+          <p>We offer a hassle-free 30-day return & exchange window for all unworn creations in original packaging.</p>
+        </div>
+      </section>
+      `;
+    } else if (viewId === 'shipping') {
+      mainContent.innerHTML = `
+      <section class="info-page">
+        <div class="category-header">
+          <h1>Shipping & Delivery</h1>
+          <div class="category-divider"></div>
+        </div>
+        <div class="info-content">
+          <h3>Worldwide Insured Express Delivery</h3>
+          <p>All Sior orders are packaged in discrete, tamper-proof luxury cases and shipped with full insurance coverage.</p>
+          <ul>
+            <li><strong>GCC Countries:</strong> 1 - 2 Business Days (Complimentary)</li>
+            <li><strong>US & Europe:</strong> 3 - 5 Business Days (Complimentary)</li>
+            <li><strong>Rest of World:</strong> 4 - 7 Business Days</li>
+          </ul>
+        </div>
+      </section>
+      `;
+    } else if (viewId === 'terms') {
+      mainContent.innerHTML = `
+      <section class="info-page">
+        <div class="category-header">
+          <h1>Terms of Service</h1>
+          <div class="category-divider"></div>
+        </div>
+        <div class="info-content">
+          <p>Welcome to Sior. By accessing or purchasing from our platform, you agree to our terms of fine jewelry sales, warranty coverage, and ethical sourcing standards.</p>
+          <p>All prices are displayed transparently in your selected currency. Custom boutique orders are final upon client sign-off.</p>
+        </div>
+      </section>
+      `;
+    } else if (viewId === 'privacy') {
+      mainContent.innerHTML = `
+      <section class="info-page">
+        <div class="category-header">
+          <h1>Privacy Policy</h1>
+          <div class="category-divider"></div>
+        </div>
+        <div class="info-content">
+          <p>Your privacy is paramount. Sior employs end-to-end 256-bit SSL encryption to safeguard your personal details and payment transactions.</p>
+          <p>We never share or sell client data to third parties.</p>
+        </div>
+      </section>
+      `;
     } else {
       // Category Pages
       const displayCategory = viewId === 'collection' ? 'Elite Collection' : viewId;
@@ -386,19 +452,20 @@ try {
     }
   }
 
-  // Interactivity logic
-  document.querySelectorAll('#main-nav a, .view-link').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
+  // Interactivity logic - Event Delegation for view navigation
+  document.addEventListener('click', (e) => {
+    const viewLink = e.target.closest('[data-view]');
+    if (viewLink) {
       e.preventDefault();
-      const viewId = this.getAttribute('data-view');
+      const viewId = viewLink.getAttribute('data-view');
       navigateToView(viewId);
 
-      // Update active state in nav (if applicable)
       document.querySelectorAll('#main-nav a').forEach(a => a.classList.remove('active'));
-      if (this.closest('#main-nav')) {
-        this.classList.add('active');
+      const mainNavMatch = document.querySelector(`#main-nav a[data-view="${viewId}"]`);
+      if (mainNavMatch) {
+        mainNavMatch.classList.add('active');
       }
-    });
+    }
   });
 
   // Footer Contact Link

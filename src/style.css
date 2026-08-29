@@ -1703,6 +1703,35 @@ footer {
   margin: 0 auto;
 }
 
+/* Info Pages (FAQ, Shipping, Terms, Privacy) */
+.info-page {
+  padding: 120px 5% 80px;
+  background-color: var(--bg-cream);
+  min-height: 80vh;
+}
+
+.info-content {
+  max-width: 800px;
+  margin: 40px auto 0;
+  text-align: left;
+  line-height: 1.8;
+  color: var(--text-charcoal);
+}
+
+.info-content h3 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: var(--primary-navy);
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.info-content p, .info-content ul {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
 .category-filters {
   display: flex;
   justify-content: space-between;
