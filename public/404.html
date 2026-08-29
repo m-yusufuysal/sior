@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sior Redirecting...</title>
+  <script>
+    var l = window.location;
+    if (l.pathname.indexOf('/admin') !== -1 || l.search.indexOf('admin') !== -1) {
+      var basePath = l.pathname.substring(0, l.pathname.indexOf('/admin'));
+      window.location.replace(l.protocol + '//' + l.host + (basePath || '') + '/#admin');
+    } else {
+      window.location.replace(l.protocol + '//' + l.host + '/');
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>

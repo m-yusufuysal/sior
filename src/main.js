@@ -39,7 +39,6 @@ try {
           <li><a href="#" data-view="Earrings">Earrings</a></li>
           <li><a href="#" data-view="Bracelets">Bracelets</a></li>
           <li><a href="#" data-view="contact">Contact</a></li>
-          <li><a href="#" data-view="admin" style="color: #c5a059; font-weight: 600;">🔒 Admin</a></li>
         </ul>
       </nav>
     </div>
@@ -767,13 +766,30 @@ try {
     }
   }
 
-  // Initial Render
-  navigateToView('home');
+  // Navigation logic & URL Route Detection for secret /admin access
+  function checkURLRoute() {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
 
-  // Navigation logic
+    if (path.endsWith('/admin') || path.endsWith('/admin/') || hash === '#admin' || hash === '#/admin' || search.includes('admin')) {
+      navigateToView('admin');
+    }
+  }
+
   function navigateToView(viewId) {
     const mainContent = document.getElementById('main-content');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (viewId === 'admin') {
+      if (window.location.hash !== '#admin') {
+        history.replaceState(null, '', '#admin');
+      }
+    } else {
+      if (window.location.hash === '#admin') {
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }
 
     if (viewId === 'home') {
       mainContent.innerHTML = `
@@ -1026,6 +1042,12 @@ try {
       renderProducts(filterCat, 'category-grid');
     }
   }
+
+  // Initial Render & URL Route Check
+  navigateToView('home');
+  window.addEventListener('hashchange', checkURLRoute);
+  window.addEventListener('popstate', checkURLRoute);
+  checkURLRoute();
 
   // Interactivity logic - Event Delegation for view navigation
   document.addEventListener('click', (e) => {
