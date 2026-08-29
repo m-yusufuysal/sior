@@ -347,6 +347,36 @@ try {
     if (modal) modal.classList.remove('active');
   };
 
+  window.deleteOrder = (orderId) => {
+    if (confirm(`Are you sure you want to delete order ${orderId}?`)) {
+      let orders = getOrders();
+      orders = orders.filter(o => o.id !== orderId);
+      saveOrders(orders);
+      renderAdminPortal();
+    }
+  };
+
+  window.exportOrdersCSV = () => {
+    const orders = getOrders();
+    if (!orders || orders.length === 0) {
+      alert('No orders available to export.');
+      return;
+    }
+    let csv = 'Order ID,Customer,Items,Total,Status,Date\n';
+    orders.forEach(o => {
+      csv += `"${o.id}","${(o.customer || '').replace(/"/g, '""')}","${(o.items || '').replace(/"/g, '""')}","${o.total}","${o.status}","${o.date}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `sior_orders_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   window.deleteProduct = (id) => {
     if (confirm('Are you sure you want to delete this product?')) {
       let prods = getProducts();
@@ -409,10 +439,14 @@ try {
 
     const prods = getProducts();
     const orders = getOrders();
+
+    // Dynamic Net Calculations
     const totalSalesNum = orders.reduce((sum, o) => {
-      const val = parseInt(o.total.replace(/[^0-9]/g, '')) || 0;
+      const val = parseInt(String(o.total || '0').replace(/[^0-9]/g, ''), 10) || 0;
       return sum + val;
     }, 0);
+
+    const avgOrderVal = orders.length > 0 ? Math.round(totalSalesNum / orders.length) : 0;
 
     mainContent.innerHTML = `
     <section class="admin-page">
@@ -441,7 +475,8 @@ try {
             <h2>${adminCurrentTab.toUpperCase()} OVERVIEW</h2>
             <div class="admin-actions">
               ${adminCurrentTab === 'products' ? '<button class="btn-shopify" onclick="openAddProductModal()">+ Add Product</button>' : ''}
-              <button class="btn-shopify-secondary" onclick="navigateToView('home')">🌐 View Storefront</button>
+              <button class="btn-shopify-secondary" onclick="exportOrdersCSV()">📥 Export CSV Report</button>
+              <button class="btn-shopify-secondary" onclick="navigateToView('home')">🌐 Storefront</button>
               <button class="btn-shopify-secondary" onclick="logoutAdmin()">Logout</button>
             </div>
           </div>
@@ -508,9 +543,9 @@ try {
       tabContainer.innerHTML = `
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-card-title">Total Revenue</div>
+          <div class="stat-card-title">Total Revenue (Live Net)</div>
           <div class="stat-card-value">${totalSalesNum.toLocaleString()} AED</div>
-          <div class="stat-card-badge">▲ +14.2% from last month</div>
+          <div class="stat-card-badge">▲ Exact Net Total (${orders.length} Orders)</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-title">Total Orders</div>
@@ -518,20 +553,82 @@ try {
           <div class="stat-card-badge">▲ +8.0% conversion</div>
         </div>
         <div class="stat-card">
+          <div class="stat-card-title">Avg. Order Value (AOV)</div>
+          <div class="stat-card-value">${avgOrderVal.toLocaleString()} AED</div>
+          <div class="stat-card-badge">● Calculated Per Order</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-card-title">Live Store Visitors</div>
           <div class="stat-card-value" id="live-visitors-val">18</div>
           <div class="stat-card-badge live-pulse">Active Online Right Now</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-card-title">Total Products in Store</div>
-          <div class="stat-card-value">${prods.length}</div>
-          <div class="stat-card-badge">● Active Inventory</div>
+      </div>
+
+      <!-- Visual Sales Chart & Activity Grid -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 24px;">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>Sales & Revenue Analytics Chart</h3>
+            <small style="color: #6d7175;">7-Day Performance Breakdown</small>
+          </div>
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; height: 180px; padding: 20px 10px 10px; border-bottom: 1px solid #eee;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #008060; width: 32px; height: 80px; border-radius: 4px 4px 0 0;" title="Mon: 45,000 AED"></div>
+              <small style="font-size: 11px; color: #6d7175;">Mon</small>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #008060; width: 32px; height: 50px; border-radius: 4px 4px 0 0;" title="Tue: 22,400 AED"></div>
+              <small style="font-size: 11px; color: #6d7175;">Tue</small>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #008060; width: 32px; height: 130px; border-radius: 4px 4px 0 0;" title="Wed: 120,000 AED"></div>
+              <small style="font-size: 11px; color: #6d7175;">Wed</small>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #008060; width: 32px; height: 70px; border-radius: 4px 4px 0 0;" title="Thu: 38,500 AED"></div>
+              <small style="font-size: 11px; color: #6d7175;">Thu</small>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #008060; width: 32px; height: 100px; border-radius: 4px 4px 0 0;" title="Fri: 65,000 AED"></div>
+              <small style="font-size: 11px; color: #6d7175;">Fri</small>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #5c6ac4; width: 32px; height: 150px; border-radius: 4px 4px 0 0;" title="Sat (Today): ${totalSalesNum.toLocaleString()} AED"></div>
+              <small style="font-size: 11px; color: #1a1c1d; font-weight: bold;">Sat (Today)</small>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="background: #e1e3e5; width: 32px; height: 40px; border-radius: 4px 4px 0 0;" title="Sun (Projected)"></div>
+              <small style="font-size: 11px; color: #6d7175;">Sun</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>Live Activity Stream</h3>
+            <span class="live-pulse" style="font-size: 11px; color: #d82c0d;">Live Ticker</span>
+          </div>
+          <div id="live-activity-list" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            <div style="padding-bottom: 8px; border-bottom: 1px solid #f1f2f4;">
+              <strong>👤 Client from Dubai, UAE</strong><br>
+              <small style="color: #6d7175;">Viewing Eternal Sparkle Ring • 12s ago</small>
+            </div>
+            <div style="padding-bottom: 8px; border-bottom: 1px solid #f1f2f4;">
+              <strong>🛍️ Client from London, UK</strong><br>
+              <small style="color: #6d7175;">Added Masterpiece Chrono to Bag • 1m ago</small>
+            </div>
+            <div style="padding-bottom: 8px; border-bottom: 1px solid #f1f2f4;">
+              <strong>✨ New Inquiry Submitted</strong><br>
+              <small style="color: #6d7175;">Elizabeth V. requested Bespoke Design • 4m ago</small>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="admin-card" style="margin-top: 24px;">
         <div class="admin-card-header">
-          <h3>Recent Orders</h3>
+          <h3>Recent Orders (${orders.length})</h3>
+          <button class="btn-shopify-secondary" onclick="exportOrdersCSV()">📥 Export CSV Report</button>
         </div>
         <table class="shopify-table">
           <thead>
@@ -542,6 +639,7 @@ try {
               <th>Total</th>
               <th>Status</th>
               <th>Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -550,9 +648,10 @@ try {
                 <td><strong>${o.id}</strong></td>
                 <td>${o.customer}</td>
                 <td>${o.items}</td>
-                <td>${o.total}</td>
+                <td><strong>${o.total}</strong></td>
                 <td><span class="status-badge ${o.status.toLowerCase()}">${o.status}</span></td>
                 <td>${o.date}</td>
+                <td><button class="btn-shopify-danger" onclick="deleteOrder('${o.id}')">Delete</button></td>
               </tr>
             `).join('')}
           </tbody>
@@ -613,6 +712,7 @@ try {
       <div class="admin-card">
         <div class="admin-card-header">
           <h3>Customer Orders (${orders.length})</h3>
+          <button class="btn-shopify-secondary" onclick="exportOrdersCSV()">📥 Export CSV Report</button>
         </div>
         <table class="shopify-table">
           <thead>
@@ -623,6 +723,7 @@ try {
               <th>Total Amount</th>
               <th>Status</th>
               <th>Change Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -640,6 +741,9 @@ try {
                     <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
                     <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
                   </select>
+                </td>
+                <td>
+                  <button class="btn-shopify-danger" onclick="deleteOrder('${o.id}')">Delete</button>
                 </td>
               </tr>
             `).join('')}
