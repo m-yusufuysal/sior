@@ -109,7 +109,6 @@ try {
           <li><a href="#" data-view="shipping" class="view-link">Shipping Info</a></li>
           <li><a href="#" data-view="terms" class="view-link">Terms of Use</a></li>
           <li><a href="#" data-view="privacy" class="view-link">Privacy Policy</a></li>
-          <li><a href="#" data-view="admin" class="view-link" style="color: rgba(197, 160, 89, 0.8);">Admin Portal</a></li>
         </ul>
       </div>
       <div class="footer-col">
