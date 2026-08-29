@@ -93,8 +93,8 @@ try {
     <div class="footer-main">
       <div class="footer-col footer-promise">
         <h4>Our Promise</h4>
-        <p>Bellorra creates lab-grown moissanite jewelry that rivals a diamond's fire, yet leaves the planet — and your wallet — at peace. Ethical. Attainable. Crafted to shine on you, always.</p>
-        <a href="mailto:support@bellorra.com">support@bellorra.com</a>
+        <p>Sior creates lab-grown moissanite jewelry that rivals a diamond's fire, yet leaves the planet — and your wallet — at peace. Ethical. Attainable. Crafted to shine on you, always.</p>
+        <a href="mailto:concierge@sior-jewels.com">concierge@sior-jewels.com</a>
       </div>
       <div class="footer-col">
         <h4>ABOUT</h4>
@@ -177,14 +177,27 @@ try {
           </div>
         </div>
         <div class="form-group">
-          <label>Payment Details</label>
-          <div class="fake-card-input">
-            <span class="icon">💳</span>
-            <input type="text" placeholder="Card Number" required>
+          <label>Payment Method</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button type="button" class="option-btn active" id="pay-mode-card" onclick="switchPaymentMode('card')">💳 Credit Card</button>
+            <button type="button" class="option-btn" id="pay-mode-stripe" onclick="switchPaymentMode('stripe')">⚡ Stripe Gateway</button>
           </div>
-          <div class="form-row">
-            <input type="text" placeholder="MM/YY" required>
-            <input type="text" placeholder="CVC" required>
+          <div id="card-fields">
+            <div class="fake-card-input">
+              <span class="icon">💳</span>
+              <input type="text" placeholder="Card Number (4532 ...)">
+            </div>
+            <div class="form-row" style="margin-top: 10px;">
+              <input type="text" placeholder="MM/YY">
+              <input type="text" placeholder="CVC">
+            </div>
+          </div>
+          <div id="stripe-fields" style="display: none; background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1;">
+            <div style="font-size: 13px; color: #334155; margin-bottom: 10px;">⚡ <strong>Stripe Insured Checkout Active</strong></div>
+            <div style="background: white; padding: 12px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 13px; color: #475569;">
+              🔒 Direct 256-bit Encrypted Stripe PaymentIntent Ready
+            </div>
+            <small style="color: #64748b; margin-top: 6px; display: block;">Supports Visa, Mastercard, AMEX, Apple Pay & Google Pay</small>
           </div>
         </div>
         <button type="submit" class="btn-primary full-width">Pay Now <span id="checkout-btn-price"></span></button>
@@ -1136,10 +1149,30 @@ try {
   // Cart State
   let cart = [];
 
+  window.switchPaymentMode = (mode) => {
+    const cardBtn = document.getElementById('pay-mode-card');
+    const stripeBtn = document.getElementById('pay-mode-stripe');
+    const cardFields = document.getElementById('card-fields');
+    const stripeFields = document.getElementById('stripe-fields');
+
+    if (mode === 'stripe') {
+      if (cardBtn) cardBtn.classList.remove('active');
+      if (stripeBtn) stripeBtn.classList.add('active');
+      if (cardFields) cardFields.style.display = 'none';
+      if (stripeFields) stripeFields.style.display = 'block';
+    } else {
+      if (stripeBtn) stripeBtn.classList.remove('active');
+      if (cardBtn) cardBtn.classList.add('active');
+      if (stripeFields) stripeFields.style.display = 'none';
+      if (cardFields) cardFields.style.display = 'block';
+    }
+  };
+
   function updateCartUI() {
     const cartCount = document.getElementById('cart-count');
     const cartItemsContainer = document.getElementById('cart-items');
     const totalPriceDisplay = document.getElementById('cart-total-price');
+    const currentProds = getProducts();
 
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.textContent = totalItems;
@@ -1151,21 +1184,22 @@ try {
       return;
     }
 
-    cartItemsContainer.innerHTML = cart.map(item => {
-      const p = products.find(prod => prod.id === item.id);
+    cartItemsContainer.innerHTML = cart.map((item, index) => {
+      const p = currentProds.find(prod => prod.id === item.id) || { name: 'Sior Creation', price: '18,500 AED', image: getAssetPath('/ring.png') };
       return `
       <div class="cart-item">
         <img src="${p.image}" alt="${p.name}">
         <div class="cart-item-details">
           <h4>${p.name}</h4>
+          <small style="color: #777; display: block; margin-bottom: 4px;">Option: ${item.size || 'Standard'} | ${item.metal || '18K Gold'}</small>
           <span class="cart-item-price">${p.price}</span>
           <div class="cart-controls">
             <div class="quantity-control">
-              <button class="quantity-btn" onclick="updateQty(${item.id}, -1)">-</button>
+              <button class="quantity-btn" onclick="updateQty(${index}, -1)">-</button>
               <span class="quantity-display">${item.quantity}</span>
-              <button class="quantity-btn" onclick="updateQty(${item.id}, 1)">+</button>
+              <button class="quantity-btn" onclick="updateQty(${index}, 1)">+</button>
             </div>
-            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+            <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
           </div>
         </div>
       </div>
@@ -1173,39 +1207,30 @@ try {
     }).join('');
 
     const total = cart.reduce((sum, item) => {
-      const p = products.find(prod => prod.id === item.id);
-      const priceNum = parseInt(p.price.replace(/[^0-9]/g, ''));
+      const p = currentProds.find(prod => prod.id === item.id);
+      const priceNum = p ? (parseInt(p.price.replace(/[^0-9]/g, '')) || 0) : 0;
       return sum + (priceNum * item.quantity);
     }, 0);
 
     totalPriceDisplay.textContent = `${total.toLocaleString()} AED`;
   }
 
-  window.updateQty = (id, delta) => {
-    const item = cart.find(i => i.id === id);
-    if (item) {
-      item.quantity += delta;
-      if (item.quantity <= 0) {
-        cart = cart.filter(i => i.id !== id);
+  window.updateQty = (index, delta) => {
+    if (cart[index]) {
+      cart[index].quantity += delta;
+      if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
       }
       updateCartUI();
     }
   };
 
-  window.removeFromCart = (id) => {
-    cart = cart.filter(i => i.id !== id);
-    updateCartUI();
-  };
-
-  document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('quick-add-btn')) {
-      const id = parseInt(e.target.dataset.id);
-      const product = products.find(p => p.id === id);
-      if (product) {
-        showProductDetail(product);
-      }
+  window.removeFromCart = (index) => {
+    if (cart[index]) {
+      cart.splice(index, 1);
+      updateCartUI();
     }
-  });
+  };
 
   // Cart and Checkout Modal Logic
   const cartModal = document.getElementById('cart-modal');
@@ -1245,8 +1270,6 @@ try {
       renderProducts(categoryMap[link.innerText] || 'All');
     });
   });
-
-  // Initial Render removed from here as it's now inside navigateToView call chain
 
   // Reveal on Scroll
   function initReveal() {
@@ -1288,10 +1311,8 @@ try {
     }
 
     if (currentScrollY > lastScrollY && currentScrollY > 200) {
-      // Scrolling down
       header.classList.add('header-hidden');
     } else {
-      // Scrolling up or at top
       header.classList.remove('header-hidden');
     }
 
@@ -1302,71 +1323,97 @@ try {
   const currencySelector = document.getElementById('currency-selector');
   const currentCurrencySpan = currencySelector.querySelector('.current-currency');
 
-  currencySelector.addEventListener('click', (e) => {
-    currencySelector.classList.toggle('active');
+  if (currencySelector) {
+    currencySelector.addEventListener('click', (e) => {
+      currencySelector.classList.toggle('active');
 
-    if (e.target.classList.contains('currency-option')) {
-      const newVal = e.target.dataset.value;
-      currentCurrencySpan.textContent = newVal;
-      currencySelector.classList.remove('active');
-      // Here you could update prices based on exchange rates
-    }
-  });
+      if (e.target.classList.contains('currency-option')) {
+        const newVal = e.target.dataset.value;
+        currentCurrencySpan.textContent = newVal;
+        currencySelector.classList.remove('active');
+      }
+    });
 
-  document.addEventListener('click', (e) => {
-    if (!currencySelector.contains(e.target)) {
-      currencySelector.classList.remove('active');
-    }
-  });
+    document.addEventListener('click', (e) => {
+      if (!currencySelector.contains(e.target)) {
+        currencySelector.classList.remove('active');
+      }
+    });
+  }
 
   // Search functionality
   const searchBtn = document.getElementById('search-btn');
   const inlineSearch = document.getElementById('inline-search');
 
-  searchBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    inlineSearch.classList.toggle('active');
-    if (inlineSearch.classList.contains('active')) {
-      inlineSearch.focus();
-    }
-  });
+  if (searchBtn && inlineSearch) {
+    searchBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      inlineSearch.classList.toggle('active');
+      if (inlineSearch.classList.contains('active')) {
+        inlineSearch.focus();
+      }
+    });
 
-  inlineSearch.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      const query = inlineSearch.value;
-      if (query) {
-        alert(`Searching for: ${query}`);
+    inlineSearch.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const query = inlineSearch.value;
+        if (query) {
+          alert(`Searching for: ${query}`);
+          inlineSearch.classList.remove('active');
+          inlineSearch.value = '';
+        }
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-container')) {
         inlineSearch.classList.remove('active');
-        inlineSearch.value = '';
+      }
+    });
+  }
+
+  // Product detail selection UI logic
+  document.addEventListener('click', (e) => {
+    const quickBtn = e.target.closest('.quick-add-btn');
+    const productCard = e.target.closest('.product-card');
+
+    if (quickBtn || productCard) {
+      const btn = quickBtn || productCard.querySelector('.quick-add-btn');
+      if (btn && btn.dataset.id) {
+        const productId = btn.dataset.id;
+        const currentProds = getProducts();
+        const product = currentProds.find(p => p.id == productId);
+        if (product) {
+          showProductDetail(product);
+        }
       }
     }
   });
 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-container')) {
-      inlineSearch.classList.remove('active');
-    }
-  });
-
-  // Product detail selection UI logic
-  // We will replace the quick-add behavior with a detail modal
-  document.addEventListener('click', (e) => {
-    const productCard = e.target.closest('.product-card');
-    if (productCard && !e.target.classList.contains('quick-add-btn')) {
-      const productId = productCard.querySelector('.quick-add-btn').dataset.id;
-      const product = products.find(p => p.id == productId);
-      showProductDetail(product);
-    }
-  });
-
   function showProductDetail(product) {
-    // Create a detail modal on the fly or reuse one
     let detailModal = document.getElementById('product-detail-modal');
     if (!detailModal) {
       detailModal = document.createElement('div');
       detailModal.id = 'product-detail-modal';
       detailModal.className = 'modal-overlay';
       document.body.appendChild(detailModal);
+    }
+
+    let sizeLabel = 'Ring Size (US)';
+    let sizeOptions = ['5', '5.5', '6', '6.5', '7', '7.5', '8'];
+
+    if (product.category === 'Necklaces') {
+      sizeLabel = 'Chain Length';
+      sizeOptions = ['16" (40cm)', '18" (45cm)', '20" (50cm)', '24" (60cm)'];
+    } else if (product.category === 'Earrings') {
+      sizeLabel = 'Backing Type';
+      sizeOptions = ['Push Back', 'Screw Back', 'Lever Back'];
+    } else if (product.category === 'Bracelets') {
+      sizeLabel = 'Wrist Size';
+      sizeOptions = ['Small (6.5")', 'Medium (7.0")', 'Large (7.5")'];
+    } else if (product.category === 'Timepieces') {
+      sizeLabel = 'Case Size';
+      sizeOptions = ['38mm', '40mm', '42mm'];
     }
 
     detailModal.innerHTML = `
@@ -1379,17 +1426,17 @@ try {
         <div class="detail-info">
           <h2>${product.name}</h2>
           <div class="detail-price">${product.price}</div>
-          <p class="detail-description">${product.material}. A masterpiece of elite craftsmanship, designed for those who define excellence.</p>
+          <p class="detail-description">${product.material}. Handcrafted in our private ateliers with certified ethical gemstones.</p>
           
           <div class="selection-group">
-            <label>Ring Size</label>
+            <label>${sizeLabel}</label>
             <div class="size-options">
-              ${[5, 5.5, 6, 6.5, 7, 7.5, 8].map(s => `<button class="option-btn">${s}</button>`).join('')}
+              ${sizeOptions.map((s, idx) => `<button class="option-btn ${idx === 1 || idx === 0 ? 'active' : ''}">${s}</button>`).join('')}
             </div>
           </div>
 
           <div class="selection-group">
-            <label>Material</label>
+            <label>Material & Metal</label>
             <div class="material-options">
               <button class="option-btn active">18K White Gold</button>
               <button class="option-btn">Platinum</button>
@@ -1408,7 +1455,6 @@ try {
 
     detailModal.classList.add('active');
 
-    // Add option button logic
     detailModal.querySelectorAll('.option-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         this.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
@@ -1418,14 +1464,21 @@ try {
   }
 
   window.addToBagFromDetail = (id) => {
-    const existing = cart.find(i => i.id === id);
+    const detailModal = document.getElementById('product-detail-modal');
+    const selectedSizeBtn = detailModal ? detailModal.querySelector('.size-options .option-btn.active') : null;
+    const selectedMetalBtn = detailModal ? detailModal.querySelector('.material-options .option-btn.active') : null;
+
+    const size = selectedSizeBtn ? selectedSizeBtn.textContent : 'Standard';
+    const metal = selectedMetalBtn ? selectedMetalBtn.textContent : '18K White Gold';
+
+    const existing = cart.find(i => i.id === id && i.size === size && i.metal === metal);
     if (existing) {
       existing.quantity += 1;
     } else {
-      cart.push({ id, quantity: 1 });
+      cart.push({ id, size, metal, quantity: 1 });
     }
     updateCartUI();
-    document.getElementById('product-detail-modal').classList.remove('active');
+    if (detailModal) detailModal.classList.remove('active');
     document.getElementById('cart-modal').classList.add('active');
   };
 
@@ -1447,7 +1500,8 @@ try {
       const currentProds = getProducts();
       const itemsSummary = cart.map(i => {
         const p = currentProds.find(item => item.id === i.id);
-        return p ? `${p.name} (${i.quantity})` : `Item #${i.id}`;
+        const nameText = p ? p.name : `Item #${i.id}`;
+        return `${nameText} [${i.size || 'Std'}/${i.metal || '18K'}] (${i.quantity})`;
       }).join(', ') || 'Custom Jewelry';
 
       const totalFormatted = document.getElementById('cart-total-price')?.textContent || '18,500 AED';
