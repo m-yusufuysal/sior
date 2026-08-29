@@ -39,6 +39,7 @@ try {
           <li><a href="#" data-view="Earrings">Earrings</a></li>
           <li><a href="#" data-view="Bracelets">Bracelets</a></li>
           <li><a href="#" data-view="contact">Contact</a></li>
+          <li><a href="#" data-view="admin" style="color: #c5a059; font-weight: 600;">🔒 Admin</a></li>
         </ul>
       </nav>
     </div>
@@ -208,21 +209,54 @@ try {
   </div>
 `;
 
-  // Product Data
-  const products = [
-    { id: 1, name: 'Eternal Sparkle Ring', category: 'Rings', price: '18,500 AED', material: '18k White Gold | VVS Diamonds', image: getAssetPath('/ring.png'), style: '' },
-    { id: 2, name: 'Golden Dawn Solitaire', category: 'Rings', price: '22,400 AED', material: 'Rose Gold | Rare Pink Diamond', image: getAssetPath('/ring.png'), style: '' },
-    { id: 3, name: 'Midnight Noir Band', category: 'Rings', price: '9,800 AED', material: 'Black Gold | Polished Onyx', image: getAssetPath('/ring.png'), style: '' },
-    { id: 4, name: 'Celestial Halo Emerald', category: 'Rings', price: '28,900 AED', material: 'Platinum | Colombian Emerald', image: getAssetPath('/ring.png'), style: '' },
-    { id: 5, name: 'Elite Diamond Choker', category: 'Necklaces', price: '45,000 AED', material: 'Platinum | 5ct Round Diamonds', image: getAssetPath('/ring.png'), style: '' },
-    { id: 6, name: 'Royal Sapphire Pendant', category: 'Necklaces', price: '32,000 AED', material: '18k White Gold | Ceylon Sapphire', image: getAssetPath('/ring.png'), style: '' },
-    { id: 7, name: 'Masterpiece Chrono', category: 'Timepieces', price: '120,000 AED', material: 'Titanium | Diamond Bezel', image: getAssetPath('/ring.png'), style: '' },
+  // Product & Order Storage Management (localStorage)
+  const defaultProducts = [
+    { id: 1, name: 'Eternal Sparkle Ring', category: 'Rings', price: '18,500 AED', material: '18k White Gold | VVS Diamonds', image: getAssetPath('/ring.png'), style: '', stock: 12 },
+    { id: 2, name: 'Golden Dawn Solitaire', category: 'Rings', price: '22,400 AED', material: 'Rose Gold | Rare Pink Diamond', image: getAssetPath('/ring.png'), style: '', stock: 8 },
+    { id: 3, name: 'Midnight Noir Band', category: 'Rings', price: '9,800 AED', material: 'Black Gold | Polished Onyx', image: getAssetPath('/ring.png'), style: '', stock: 15 },
+    { id: 4, name: 'Celestial Halo Emerald', category: 'Rings', price: '28,900 AED', material: 'Platinum | Colombian Emerald', image: getAssetPath('/ring.png'), style: '', stock: 5 },
+    { id: 5, name: 'Elite Diamond Choker', category: 'Necklaces', price: '45,000 AED', material: 'Platinum | 5ct Round Diamonds', image: getAssetPath('/ring.png'), style: '', stock: 3 },
+    { id: 6, name: 'Royal Sapphire Pendant', category: 'Necklaces', price: '32,000 AED', material: '18k White Gold | Ceylon Sapphire', image: getAssetPath('/ring.png'), style: '', stock: 7 },
+    { id: 7, name: 'Masterpiece Chrono', category: 'Timepieces', price: '120,000 AED', material: 'Titanium | Diamond Bezel', image: getAssetPath('/ring.png'), style: '', stock: 2 },
   ];
+
+  function getProducts() {
+    const stored = localStorage.getItem('sior_products');
+    if (stored) {
+      try { return JSON.parse(stored); } catch (e) {}
+    }
+    localStorage.setItem('sior_products', JSON.stringify(defaultProducts));
+    return defaultProducts;
+  }
+
+  function saveProducts(prods) {
+    localStorage.setItem('sior_products', JSON.stringify(prods));
+  }
+
+  const defaultOrders = [
+    { id: 'ORD-9021', customer: 'Sophia Laurent', items: 'Eternal Sparkle Ring (1)', total: '18,500 AED', status: 'Delivered', date: '2026-08-28' },
+    { id: 'ORD-9022', customer: 'Alexander Wright', items: 'Masterpiece Chrono (1)', total: '120,000 AED', status: 'Processing', date: '2026-08-29' },
+    { id: 'ORD-9023', customer: 'Elena Rostova', items: 'Elite Diamond Choker (1)', total: '45,000 AED', status: 'Shipped', date: '2026-08-29' }
+  ];
+
+  function getOrders() {
+    const stored = localStorage.getItem('sior_orders');
+    if (stored) {
+      try { return JSON.parse(stored); } catch (e) {}
+    }
+    localStorage.setItem('sior_orders', JSON.stringify(defaultOrders));
+    return defaultOrders;
+  }
+
+  function saveOrders(orders) {
+    localStorage.setItem('sior_orders', JSON.stringify(orders));
+  }
 
   function renderProducts(category = 'All', targetId = 'product-grid') {
     const grid = document.getElementById(targetId) || document.querySelector('.product-grid');
     if (!grid) return;
-    const filtered = category === 'All' ? products : products.filter(p => p.category === category);
+    const currentProds = getProducts();
+    const filtered = category === 'All' ? currentProds : currentProds.filter(p => p.category === category);
 
     grid.innerHTML = filtered.map(p => `
     <div class="product-card reveal">
@@ -238,10 +272,7 @@ try {
     </div>
   `).join('');
 
-    // Re-run animation observer for new elements
     initReveal();
-
-    // Update product count if element exists
     const countEl = document.getElementById('product-count');
     if (countEl) countEl.textContent = filtered.length;
   }
@@ -253,6 +284,488 @@ try {
   window.switchCategoryTab = (category, btn) => {
     // Legacy stub
   };
+
+  // Admin State & Functions
+  let adminCurrentTab = 'dashboard';
+
+  window.switchAdminTab = (tab) => {
+    adminCurrentTab = tab;
+    renderAdminPortal();
+  };
+
+  window.logoutAdmin = () => {
+    sessionStorage.removeItem('sior_admin_logged_in');
+    renderAdminPortal();
+  };
+
+  window.openAddProductModal = (id = null) => {
+    let modal = document.getElementById('product-modal');
+    if (!modal) {
+      renderAdminPortal();
+      modal = document.getElementById('product-modal');
+    }
+    const title = document.getElementById('product-modal-title');
+    const form = document.getElementById('product-form');
+
+    form.reset();
+    document.getElementById('prod-id-edit').value = '';
+
+    if (id) {
+      title.textContent = 'Edit Product';
+      const prods = getProducts();
+      const p = prods.find(item => item.id == id);
+      if (p) {
+        document.getElementById('prod-id-edit').value = p.id;
+        document.getElementById('prod-name').value = p.name;
+        document.getElementById('prod-category').value = p.category;
+        document.getElementById('prod-price').value = p.price;
+        document.getElementById('prod-material').value = p.material;
+        document.getElementById('prod-image-url').value = p.image;
+      }
+    } else {
+      title.textContent = 'Add New Product';
+    }
+
+    modal.classList.add('active');
+  };
+
+  window.closeProductModal = () => {
+    const modal = document.getElementById('product-modal');
+    if (modal) modal.classList.remove('active');
+  };
+
+  window.deleteProduct = (id) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      let prods = getProducts();
+      prods = prods.filter(p => p.id != id);
+      saveProducts(prods);
+      renderAdminPortal();
+    }
+  };
+
+  window.updateOrderStatus = (orderId, newStatus) => {
+    let orders = getOrders();
+    const o = orders.find(item => item.id === orderId);
+    if (o) {
+      o.status = newStatus;
+      saveOrders(orders);
+      renderAdminPortal();
+    }
+  };
+
+  function renderAdminPortal() {
+    const mainContent = document.getElementById('main-content');
+    const isLoggedIn = sessionStorage.getItem('sior_admin_logged_in') === 'true';
+
+    if (!isLoggedIn) {
+      mainContent.innerHTML = `
+      <section class="admin-page" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; max-width: 420px; text-align: center;">
+          <div style="width: 50px; height: 50px; background: #008060; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto 20px;">🛍️</div>
+          <h2 style="font-size: 22px; margin-bottom: 8px; color: #1a1c1d;">Shopify Admin Portal</h2>
+          <p style="color: #6d7175; font-size: 14px; margin-bottom: 30px;">Sign in to manage Sior products, orders & analytics</p>
+          
+          <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #202223;">ADMIN USERNAME</label>
+              <input type="text" value="admin" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; box-sizing: border-box;" required>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #202223;">PASSWORD</label>
+              <input type="password" value="admin123" style="width: 100%; padding: 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; box-sizing: border-box;" required>
+            </div>
+            <button type="submit" class="btn-shopify" style="width: 100%; justify-content: center; padding: 14px; font-size: 14px; margin-top: 10px;">Log In to Admin</button>
+            <button type="button" id="quick-demo-btn" class="btn-shopify-secondary" style="width: 100%; justify-content: center; padding: 12px; font-size: 13px;">⚡ One-Click Demo Access</button>
+          </form>
+        </div>
+      </section>
+      `;
+
+      document.getElementById('admin-login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        sessionStorage.setItem('sior_admin_logged_in', 'true');
+        renderAdminPortal();
+      });
+
+      document.getElementById('quick-demo-btn').addEventListener('click', () => {
+        sessionStorage.setItem('sior_admin_logged_in', 'true');
+        renderAdminPortal();
+      });
+      return;
+    }
+
+    const prods = getProducts();
+    const orders = getOrders();
+    const totalSalesNum = orders.reduce((sum, o) => {
+      const val = parseInt(o.total.replace(/[^0-9]/g, '')) || 0;
+      return sum + val;
+    }, 0);
+
+    mainContent.innerHTML = `
+    <section class="admin-page">
+      <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+          <div class="admin-brand">
+            <div class="admin-brand-logo">🛍️</div>
+            <div>
+              <div class="admin-brand-title">Sior Admin</div>
+              <small style="color: #6d7175; font-size: 11px;">Shopify Enterprise</small>
+            </div>
+          </div>
+          <ul class="admin-menu">
+            <li class="admin-menu-item"><button class="${adminCurrentTab === 'dashboard' ? 'active' : ''}" onclick="switchAdminTab('dashboard')">📊 Dashboard</button></li>
+            <li class="admin-menu-item"><button class="${adminCurrentTab === 'products' ? 'active' : ''}" onclick="switchAdminTab('products')">🛍️ Products (${prods.length})</button></li>
+            <li class="admin-menu-item"><button class="${adminCurrentTab === 'orders' ? 'active' : ''}" onclick="switchAdminTab('orders')">📦 Orders (${orders.length})</button></li>
+            <li class="admin-menu-item"><button class="${adminCurrentTab === 'customers' ? 'active' : ''}" onclick="switchAdminTab('customers')">👥 Customers</button></li>
+            <li class="admin-menu-item"><button class="${adminCurrentTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">⚙️ Settings</button></li>
+          </ul>
+        </aside>
+
+        <!-- Main Body -->
+        <main class="admin-main">
+          <div class="admin-header-bar">
+            <h2>${adminCurrentTab.toUpperCase()} OVERVIEW</h2>
+            <div class="admin-actions">
+              ${adminCurrentTab === 'products' ? '<button class="btn-shopify" onclick="openAddProductModal()">+ Add Product</button>' : ''}
+              <button class="btn-shopify-secondary" onclick="navigateToView('home')">🌐 View Storefront</button>
+              <button class="btn-shopify-secondary" onclick="logoutAdmin()">Logout</button>
+            </div>
+          </div>
+
+          <div id="admin-tab-content">
+            <!-- Tab specific body -->
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal-overlay">
+      <div class="modal-content admin-modal-content">
+        <div class="modal-header" style="padding-bottom: 15px; border-bottom: 1px solid #eee;">
+          <h3 id="product-modal-title" style="margin:0; font-size: 18px;">Add New Product</h3>
+          <span class="modal-close" onclick="closeProductModal()">&times;</span>
+        </div>
+        <form id="product-form" style="padding-top: 20px;">
+          <input type="hidden" id="prod-id-edit">
+          <div class="admin-form-group">
+            <label>Product Name</label>
+            <input type="text" id="prod-name" placeholder="e.g. Royal Diamond Solitaire" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="admin-form-group">
+              <label>Category</label>
+              <select id="prod-category" required>
+                <option value="Rings">Rings</option>
+                <option value="Necklaces">Necklaces</option>
+                <option value="Earrings">Earrings</option>
+                <option value="Bracelets">Bracelets</option>
+                <option value="Timepieces">Timepieces</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label>Price (AED)</label>
+              <input type="text" id="prod-price" placeholder="e.g. 19,500 AED" required>
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label>Material & Gemstone Info</label>
+            <input type="text" id="prod-material" placeholder="e.g. 18k White Gold | VVS Moissanite" required>
+          </div>
+          <div class="admin-form-group">
+            <label>Image Upload or Image URL</label>
+            <input type="file" id="prod-file-upload" accept="image/*" style="margin-bottom: 8px;">
+            <input type="text" id="prod-image-url" placeholder="OR enter image URL e.g. /ring.png">
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button type="button" class="btn-shopify-secondary" onclick="closeProductModal()">Cancel</button>
+            <button type="submit" class="btn-shopify">Save Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    `;
+
+    // Render inner content tab
+    const tabContainer = document.getElementById('admin-tab-content');
+    if (!tabContainer) return;
+
+    if (adminCurrentTab === 'dashboard') {
+      tabContainer.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-title">Total Revenue</div>
+          <div class="stat-card-value">${totalSalesNum.toLocaleString()} AED</div>
+          <div class="stat-card-badge">▲ +14.2% from last month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Total Orders</div>
+          <div class="stat-card-value">${orders.length}</div>
+          <div class="stat-card-badge">▲ +8.0% conversion</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Live Store Visitors</div>
+          <div class="stat-card-value" id="live-visitors-val">18</div>
+          <div class="stat-card-badge live-pulse">Active Online Right Now</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Total Products in Store</div>
+          <div class="stat-card-value">${prods.length}</div>
+          <div class="stat-card-badge">● Active Inventory</div>
+        </div>
+      </div>
+
+      <div class="admin-card" style="margin-top: 24px;">
+        <div class="admin-card-header">
+          <h3>Recent Orders</h3>
+        </div>
+        <table class="shopify-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Items Purchased</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td><strong>${o.id}</strong></td>
+                <td>${o.customer}</td>
+                <td>${o.items}</td>
+                <td>${o.total}</td>
+                <td><span class="status-badge ${o.status.toLowerCase()}">${o.status}</span></td>
+                <td>${o.date}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      `;
+
+      // Live visitor ticker simulation
+      const interval = setInterval(() => {
+        const el = document.getElementById('live-visitors-val');
+        if (el) {
+          el.textContent = Math.floor(14 + Math.random() * 9);
+        } else {
+          clearInterval(interval);
+        }
+      }, 3000);
+
+    } else if (adminCurrentTab === 'products') {
+      tabContainer.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>All Products Inventory (${prods.length})</h3>
+          <button class="btn-shopify" onclick="openAddProductModal()">+ Add Product</button>
+        </div>
+        <table class="shopify-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Material</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${prods.map(p => `
+              <tr>
+                <td><img src="${p.image}" alt="${p.name}" class="table-product-img"></td>
+                <td><strong>${p.name}</strong></td>
+                <td><span class="status-badge shipped">${p.category}</span></td>
+                <td>${p.material}</td>
+                <td><strong>${p.price}</strong></td>
+                <td>${p.stock || 10} in stock</td>
+                <td>
+                  <button class="btn-shopify-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openAddProductModal(${p.id})">Edit</button>
+                  <button class="btn-shopify-danger" onclick="deleteProduct(${p.id})">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      `;
+    } else if (adminCurrentTab === 'orders') {
+      tabContainer.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>Customer Orders (${orders.length})</h3>
+        </div>
+        <table class="shopify-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer Name</th>
+              <th>Items Purchased</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+              <th>Change Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td><strong>${o.id}</strong></td>
+                <td>${o.customer}</td>
+                <td>${o.items}</td>
+                <td><strong>${o.total}</strong></td>
+                <td><span class="status-badge ${o.status.toLowerCase()}">${o.status}</span></td>
+                <td>
+                  <select style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc;" onchange="updateOrderStatus('${o.id}', this.value)">
+                    <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                    <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                    <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                  </select>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      `;
+    } else if (adminCurrentTab === 'customers') {
+      tabContainer.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>Customer Directory & Insider List</h3>
+        </div>
+        <table class="shopify-table">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Email Address</th>
+              <th>Orders Count</th>
+              <th>Total Spent</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Sophia Laurent</strong></td>
+              <td>sophia.laurent@paris.fr</td>
+              <td>2 Orders</td>
+              <td>36,900 AED</td>
+              <td><span class="status-badge delivered">VIP Member</span></td>
+            </tr>
+            <tr>
+              <td><strong>Alexander Wright</strong></td>
+              <td>a.wright@lux.co.uk</td>
+              <td>1 Order</td>
+              <td>120,000 AED</td>
+              <td><span class="status-badge delivered">VIP Member</span></td>
+            </tr>
+            <tr>
+              <td><strong>Elena Rostova</strong></td>
+              <td>elena.r@monaco.mc</td>
+              <td>1 Order</td>
+              <td>45,000 AED</td>
+              <td><span class="status-badge delivered">Subscriber</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      `;
+    } else if (adminCurrentTab === 'settings') {
+      tabContainer.innerHTML = `
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3>Store & Shopify Settings</h3>
+        </div>
+        <form style="display: flex; flex-direction: column; gap: 16px; max-width: 500px;" onsubmit="event.preventDefault(); alert('Settings saved successfully!');">
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">STORE NAME</label>
+            <input type="text" value="Sior Luxury Jewelry" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">PRIMARY CURRENCY</label>
+            <select style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+              <option value="AED">AED - United Arab Emirates Dirham</option>
+              <option value="USD">USD - United States Dollar</option>
+              <option value="EUR">EUR - Euro</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">TOP ANNOUNCEMENT BAR TEXT</label>
+            <input type="text" value="✨ Lifetime Stone Warranty ✨" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+          </div>
+          <button type="submit" class="btn-shopify" style="width: fit-content;">Save Settings</button>
+        </form>
+      </div>
+      `;
+    }
+
+    // Modal Form Handler for Adding/Editing Product
+    const form = document.getElementById('product-form');
+    if (form && !form.dataset.bound) {
+      form.dataset.bound = 'true';
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('prod-id-edit').value;
+        const name = document.getElementById('prod-name').value;
+        const category = document.getElementById('prod-category').value;
+        let price = document.getElementById('prod-price').value;
+        if (!price.includes('AED') && !price.includes('$') && !price.includes('€')) {
+          price += ' AED';
+        }
+        const material = document.getElementById('prod-material').value;
+        const urlInput = document.getElementById('prod-image-url').value;
+        const fileInput = document.getElementById('prod-file-upload');
+
+        const saveHandler = (imgSrc) => {
+          let prods = getProducts();
+          if (editId) {
+            const index = prods.findIndex(p => p.id == editId);
+            if (index !== -1) {
+              prods[index] = {
+                ...prods[index],
+                name,
+                category,
+                price,
+                material,
+                image: imgSrc || prods[index].image
+              };
+            }
+          } else {
+            const newId = prods.length ? Math.max(...prods.map(p => p.id)) + 1 : 1;
+            prods.unshift({
+              id: newId,
+              name,
+              category,
+              price,
+              material,
+              image: imgSrc || getAssetPath('/ring.png'),
+              style: '',
+              stock: 10
+            });
+          }
+          saveProducts(prods);
+          closeProductModal();
+          renderAdminPortal();
+        };
+
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            saveHandler(evt.target.result);
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        } else {
+          saveHandler(urlInput);
+        }
+      });
+    }
+  }
 
   // Initial Render
   navigateToView('home');
@@ -342,25 +855,87 @@ try {
       <section class="contact-page">
         <div class="contact-header">
           <h1>Connect with Our Concierge</h1>
-          <p>Our advisors are ready to assist you with bespoke requests, sizing, and style consultations.</p>
+          <p>Our private advisors are available for bespoke creations, ring sizing, and personal style consultations.</p>
         </div>
-        <div class="contact-form-container">
-          <form id="contact-form-main" class="luxury-form">
-            <div class="form-row">
-              <input type="text" placeholder="First Name" required>
-              <input type="text" placeholder="Last Name" required>
+        
+        <div class="contact-container">
+          <div class="contact-info-panel">
+            <div>
+              <h3>Private Atelier</h3>
+              
+              <div class="contact-detail-item">
+                <div class="contact-detail-icon">📍</div>
+                <div class="contact-detail-text">
+                  <h4>Flagship Boutique</h4>
+                  <p>Level 44, Sior Vault Tower<br>Financial Center, Downtown Dubai, UAE</p>
+                </div>
+              </div>
+
+              <div class="contact-detail-item">
+                <div class="contact-detail-icon">📞</div>
+                <div class="contact-detail-text">
+                  <h4>Private Concierge Line</h4>
+                  <p>+971 4 800 SIOR (7467)<br>Mon - Sat: 10:00 AM - 10:00 PM GST</p>
+                </div>
+              </div>
+
+              <div class="contact-detail-item">
+                <div class="contact-detail-icon">✉️</div>
+                <div class="contact-detail-text">
+                  <h4>Electronic Enquiries</h4>
+                  <p>concierge@sior-jewels.com<br>vip@sior-jewels.com</p>
+                </div>
+              </div>
             </div>
-            <input type="email" placeholder="Email Address" required>
-            <textarea placeholder="How can we assist you?" rows="5" required></textarea>
-            <button type="submit" class="btn-primary">SEND MESSAGE</button>
-          </form>
+
+            <div style="background: rgba(197, 160, 89, 0.08); padding: 15px; border-radius: 6px; text-align: center;">
+              <small style="color: var(--primary-navy); letter-spacing: 0.1em; font-weight: 600; text-transform: uppercase;">✨ Appointments By Invitation & Request</small>
+            </div>
+          </div>
+
+          <div class="contact-form-container">
+            <form id="contact-form-main" class="luxury-form">
+              <div class="form-row">
+                <div>
+                  <label>First Name</label>
+                  <input type="text" placeholder="e.g. Elizabeth" required>
+                </div>
+                <div>
+                  <label>Last Name</label>
+                  <input type="text" placeholder="e.g. Vance" required>
+                </div>
+              </div>
+              <div>
+                <label>Email Address</label>
+                <input type="email" placeholder="elizabeth@domain.com" required>
+              </div>
+              <div>
+                <label>Subject of Inquiry</label>
+                <select required>
+                  <option value="">Select Topic...</option>
+                  <option value="bespoke">Bespoke Custom Design</option>
+                  <option value="appointment">Private Atelier Appointment</option>
+                  <option value="sizing">Ring Sizing & Stone Advice</option>
+                  <option value="order">Existing Order Status</option>
+                </select>
+              </div>
+              <div>
+                <label>Message</label>
+                <textarea placeholder="Describe your request or stone preference in detail..." rows="4" required></textarea>
+              </div>
+              <button type="submit">SUBMIT INQUIRY</button>
+            </form>
+          </div>
         </div>
       </section>
     `;
       document.getElementById('contact-form-main').addEventListener('submit', (e) => {
         e.preventDefault();
-        alert('Thank you. We will be in touch shortly.');
+        alert('✨ Thank you. A Sior Senior Concierge advisor will review your request and reply within 4 business hours.');
+        e.target.reset();
       });
+    } else if (viewId === 'admin') {
+      renderAdminPortal();
     } else if (viewId === 'faq') {
       mainContent.innerHTML = `
       <section class="info-page">
@@ -837,6 +1412,42 @@ try {
     document.getElementById('cart-modal').classList.remove('active');
     document.getElementById('checkout-modal').classList.add('active');
   };
+
+  const checkoutForm = document.getElementById('checkout-form');
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inputs = checkoutForm.querySelectorAll('input');
+      const email = inputs[0]?.value || 'client@sior.com';
+      const name = inputs[1]?.value || 'Valued Client';
+      const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const currentProds = getProducts();
+      const itemsSummary = cart.map(i => {
+        const p = currentProds.find(item => item.id === i.id);
+        return p ? `${p.name} (${i.quantity})` : `Item #${i.id}`;
+      }).join(', ') || 'Custom Jewelry';
+
+      const totalFormatted = document.getElementById('cart-total-price')?.textContent || '18,500 AED';
+
+      let orders = getOrders();
+      orders.unshift({
+        id: orderId,
+        customer: name,
+        items: itemsSummary,
+        total: totalFormatted,
+        status: 'Pending',
+        date: new Date().toISOString().split('T')[0]
+      });
+      saveOrders(orders);
+
+      alert(`🎉 Thank you ${name}! Your order #${orderId} has been successfully submitted.\nOur Concierge team will dispatch your insured package shortly.`);
+      cart = [];
+      updateCartUI();
+      document.getElementById('checkout-modal').classList.remove('active');
+      checkoutForm.reset();
+    });
+  }
 
 } catch (error) {
   console.error('Critical App Error:', error);

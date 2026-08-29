@@ -1944,3 +1944,518 @@ footer {
     font-size: 1.2rem;
   }
 }
+
+/* Contact Page Luxury Redesign */
+.contact-page {
+  padding: 120px 5% 80px;
+  background-color: var(--bg-cream);
+  min-height: 85vh;
+}
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.contact-header h1 {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  color: var(--primary-navy);
+  margin-bottom: 15px;
+  letter-spacing: 0.05em;
+}
+
+.contact-header p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 650px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.contact-container {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.contact-info-panel {
+  background: var(--white);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(197, 160, 89, 0.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.contact-info-panel h3 {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  color: var(--primary-navy);
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--secondary-gold);
+  padding-bottom: 12px;
+}
+
+.contact-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.contact-detail-icon {
+  font-size: 1.4rem;
+  color: var(--secondary-gold);
+  background: rgba(197, 160, 89, 0.1);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-detail-text h4 {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary-navy);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.contact-detail-text p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.contact-form-container {
+  background: var(--white);
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.luxury-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.luxury-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.luxury-form input,
+.luxury-form select,
+.luxury-form textarea {
+  width: 100%;
+  padding: 16px 20px;
+  background: #fdfbf7;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--primary-navy);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.luxury-form input:focus,
+.luxury-form select:focus,
+.luxury-form textarea:focus {
+  outline: none;
+  border-color: var(--secondary-gold);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15);
+}
+
+.luxury-form label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--primary-navy);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.luxury-form button[type="submit"] {
+  padding: 18px;
+  background: var(--primary-navy);
+  color: var(--white);
+  border: none;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.luxury-form button[type="submit"]:hover {
+  background: var(--secondary-gold);
+  color: var(--primary-navy);
+  box-shadow: 0 5px 15px rgba(197, 160, 89, 0.3);
+}
+
+@media (max-width: 850px) {
+  .contact-container {
+    grid-template-columns: 1fr;
+  }
+  .luxury-form .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Shopify-Style Admin Dashboard */
+.admin-page {
+  padding: 80px 2% 40px;
+  background: #f6f6f7;
+  min-height: 90vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #202223;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-sidebar {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  height: fit-content;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e1e3e5;
+  margin-bottom: 20px;
+}
+
+.admin-brand-logo {
+  width: 34px;
+  height: 34px;
+  background: #008060;
+  color: white;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.admin-brand-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1c1d;
+}
+
+.admin-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-menu-item button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: #5c5f62;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.admin-menu-item button:hover {
+  background: #f1f2f4;
+  color: #202223;
+}
+
+.admin-menu-item button.active {
+  background: #edeeef;
+  color: #008060;
+  font-weight: 600;
+}
+
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.admin-header-bar h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1c1d;
+  margin: 0;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-shopify {
+  background: #008060;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-shopify:hover {
+  background: #006e52;
+}
+
+.btn-shopify-danger {
+  background: #d82c0d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-shopify-danger:hover {
+  background: #bc2200;
+}
+
+.btn-shopify-secondary {
+  background: #ffffff;
+  color: #202223;
+  border: 1px solid #c9cccf;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-shopify-secondary:hover {
+  background: #f6f6f7;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.stat-card-title {
+  font-size: 13px;
+  color: #6d7175;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #202223;
+  margin-bottom: 6px;
+}
+
+.stat-card-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #008060;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card-badge.live-pulse {
+  color: #d82c0d;
+}
+
+.live-pulse::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: #d82c0d;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseDot 1.5s infinite;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.4; }
+  100% { transform: scale(0.95); opacity: 1; }
+}
+
+.admin-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-card-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.shopify-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.shopify-table th {
+  padding: 12px 16px;
+  background: #f7f7f8;
+  color: #5c5f62;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e1e3e5;
+}
+
+.shopify-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e1e3e5;
+  vertical-align: middle;
+}
+
+.shopify-table tr:hover {
+  background: #f9fafb;
+}
+
+.table-product-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f4f4f4;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-badge.delivered, .status-badge.completed { background: #e4e8e1; color: #008060; }
+.status-badge.processing { background: #fff5ea; color: #b45309; }
+.status-badge.pending { background: #fbeae5; color: #d82c0d; }
+.status-badge.shipped { background: #e0f2fe; color: #0284c7; }
+
+.admin-modal-content {
+  max-width: 600px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.admin-form-group {
+  margin-bottom: 18px;
+}
+
+.admin-form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #202223;
+}
+
+.admin-form-group input,
+.admin-form-group select,
+.admin-form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #c9cccf;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.admin-form-group input:focus,
+.admin-form-group select:focus {
+  outline: none;
+  border-color: #008060;
+  box-shadow: 0 0 0 2px rgba(0,128,96,0.2);
+}
+
+@media (max-width: 1024px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
